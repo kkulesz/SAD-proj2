@@ -22,11 +22,12 @@ lambda <- as.integer(3/2)
 informacjaFishera <- function(lambda) {1/(lambda**2)}
 wartoscOczekiwana <- function(lambda, n) {lambda + lambda / (n-1)}
 wartoscOczekiwanaPrim <- function(n) {1 + 1 / (n-1)}
-constValue <- function(lambda) { wartoscOczekiwanaPrim(n)**2 / informacjaFishera(lambda) }
+constValue <- function(lambda, n) { wartoscOczekiwanaPrim(n)**2 / informacjaFishera(lambda) }
 
+rv <- c()
 for (exponent in 1:100){
   nn = 1000
-  n = 100+100*exponent
+  n = 10*exponent
   
   estymatory = replicate(nn, {
       dane = rexp(n, lambda)
@@ -35,8 +36,11 @@ for (exponent in 1:100){
   
   obciążenie = mean(estymatory - lambda)
   wariancja = var(estymatory)
-  estymator = constValue(lambda)/n/informacjaFishera(lambda)
+  estymator = constValue(lambda,n)/n
   
-  print(wariancja/estymator)
+  #print(wariancja/estymator)
+  rv <- append(rv, wariancja/estymator)
 }
 
+t=1:100
+plot(t,rv, type="l", col="green", lwd=5, xlab="time", ylab="concentration", main="estimator fitnes")
