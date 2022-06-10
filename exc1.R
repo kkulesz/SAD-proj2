@@ -1,31 +1,67 @@
 set.seed(2137)
-lambda <- as.integer(3/2)
+our_lambda <- 3/2
+use_analitical_solution <- TRUE
 
-simulate_for_sample_size <- function(sample_size){
-  random_sample <- rexp(sample_size, lambda)
+log_like_fn <- function(lambda, X){
+  X <- as.matrix(X)
+  n <- length(X)
+  fn <- n*log(lambda) - lambda*sum(X)
   
-  # count maximum likelihood estimation
-  # count its variance
-  # count its bias
-  # count Cramer-Rao bound? or it should be identitcal everywhere?
-  # compare and return everything so it can be plotted later?
-  return (c('', '', '', '', ''))
+  return (-fn)
 }
 
-column_names <- c('sample_size', 'estimated_lambda', 'bias', 'variance', 'CR-bound')
+simulate_for_sample_size <- function(lambda, sample_size){
+  random_sample <- rexp(sample_size, lambda)
+  
+  # 1. calculate maximum likelihood estimation
+  if (use_analitical_solution){
+    # https://www.statlect.com/fundamentals-of-statistics/exponential-distribution-maximum-likelihood
+    est = length(random_sample)/sum(random_sample)
+  }else{
+    # https://www.youtube.com/watch?v=w3drLH-DFpE
+    mle_est <- optim(par=3, fn=log_like_fn, lower=0, upper=Inf, method="L-BFGS-B", X = random_sample)
+    est <- mle_est$par
+  }
+  
+  # 2. calculate its bias
+  bias <- est - lambda # abs?
+  
+  # 3. calculate cr bound
+  numerator <- 1 + 1/(sample_size-1)
+  fisher_inf <- 1/(lambda^2) #https://www-users.mat.umk.pl/~alzaig/inf_Fi.pdf
+  # https://www-users.mat.umk.pl/~alzaig/nie_C_R.pdf
+  cr_bound <- numerator / (sample_size * fisher_inf)
+  
+  # 4. calculate variance
+  variance <- mean((random_sample - lambda)^2) #???????
+  
+  return (c(sample_size, est, bias, variance, cr_bound))
+}
+
+
+################################################################################
+
+column_names <- c('sample_size', 'estimated_lambda', 'bias', 'variance', 'cr_bound')
 results <- data.frame(matrix(ncol = length(column_names), nrow = 0))
 colnames(results) <- column_names
 
-base <- 2
-for (exponent in 1:16){
-  sample_size <- base ^ exponent # exponentail or linear scale?
-  result <- simulate_for_sample_size(sample_size)
+for (i in 1:100){
+  sample_size <- 1000 * i
+  result <- simulate_for_sample_size(our_lambda, sample_size)
   
   result <- as.data.frame(t(result))
   colnames(result) <- column_names
   results <- rbind(results, result)
 }
+print(results)
+
 
 # plot results somehow
+plot(results$bias ~ results$sample_size, 
+     main = 'Obciążenie od liczności próby', xlab = 'liczność próby', ylab = 'obciążenie')
 
+plot(results$variance ~ results$sample_size, 
+     main = 'Wariancja od liczności próby', xlab = 'liczność próby', ylab = 'wariancja')
 
+plot(results$cr_bound ~ results$sample_size, 
+     main = 'Kres CR od liczności próby', xlab = 'liczność próby', ylab = 'CR')
