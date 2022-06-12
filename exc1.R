@@ -48,6 +48,14 @@ simulate_for_sample_size <- function(lambda, sample_size){
   # 4. calculate variance
   variance <- mean((estimators - lambda)^2)
   
+  # TODO
+
+  if(sample_size %% 300 == 0){
+    print('jestem ')
+    normalized <- sqrt(sample_size) * (estimators - lambda)
+    hist(normalized, prob=TRUE, xlab="max. temp. diff.", main=as.character(sample_size), xlim=c(-10,10), breaks = 20)
+  }
+  
   return (c(sample_size, est, bias, variance, cr_bound))
 }
 
