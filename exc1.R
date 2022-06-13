@@ -1,12 +1,12 @@
 #### set params of experiment
 set.seed(2137)
 our_lambda <- 3/2
-start <- 10
-step <- 10
-no_of_steps <- 100
-no_of_simulations_in_single_step <- 1000
+start <- 10000
+step <- 1
+no_of_steps <- 1
+no_of_simulations_in_single_step <- 10000
 
-#### help functions
+#### help function
 simulate_for_sample_size <- function(lambda, sample_size){
   
   # 1. calculate maximum likelihood estimations
@@ -30,7 +30,7 @@ simulate_for_sample_size <- function(lambda, sample_size){
   variance <- mean((estimators - lambda)^2)
   
   # 5. plot normalized for chosen sample sizes
-  if(sample_size == 10 || sample_size == 100 || sample_size == 1000 || sample_size == 10000){
+  if(sample_size == 10 || sample_size == 100 || sample_size == 1000 || sample_size == 10000 || sample_size == 100000){
     normalized <- sqrt(sample_size) * (estimators - lambda)
     hist(normalized, prob=TRUE, xlab="Value", main=paste('Normalized for sample size = ', as.character(sample_size)), xlim=c(-6,6), ylim=c(0, 0.5), breaks = 100)
     norm_sd = sqrt(sample_size) * sqrt(variance)
@@ -57,12 +57,19 @@ for (i in 1:no_of_steps){
 
 
 # plot bias
-plot(results$bias ~ results$sample_size, 
-     main = 'Obciążenie od liczności próby', xlab = 'liczność próby', ylab = 'obciążenie')
-abline(h = 0, col = 'red', lty=2)
+#plot(results$bias ~ results$sample_size, 
+#     main = 'Bias over sample size', xlab = 'sample size', ylab = 'bias')
+#abline(h = 0, col = 'red', lty=2, lwd=2)
 
 # plot cr-bound and variance
-plot(results$cr_bound ~ results$sample_size, 
-     main = 'siema', xlab = 'liczność próby', ylab = 'wartość', type = 'l', col = 'red', lwd = 2, ylim=c(0, 0.5), log = 'x')
+plot(
+  results$cr_bound ~ results$sample_size, 
+  main = 'Variance and CR bound over sample size', 
+  xlab = 'sample size', ylab = 'value', 
+  type = 'l', col = 'red', lwd = 2, ylim=c(0, 0.5), log = 'x'
+  )
 lines(results$sample_size, results$variance, col='blue', lwd = 1)
-legend(x = 'topright', c('variance', 'cr-bound'), col = c('blue', 'red'), lty=c(1, 1), lwd = 2)
+legend(
+  x = 'topright', c('variance', 'cr-bound'), col = c('blue', 'red'), 
+  lty=c(1, 1), lwd = 2
+  )
